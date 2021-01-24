@@ -1,0 +1,8 @@
+https://stackoverflow.com/a/44797397/6539635
+https://stackoverflow.com/a/54326556/6539635
+https://docs.python.org/3/library/random.html
+https://www.techiedelight.com/check-list-empty-python/
+https://www.geeksforgeeks.org/python-adding-two-list-elements/
+https://matplotlib.org/3.3.2/api/_as_gen/matplotlib.pyplot.scatter.html
+https://matplotlib.org/3.1.0/gallery/subplots_axes_and_figures/subplots_demo.html
+https://stackoverflow.com/questions/2600191/how-can-i-count-the-occurrences-of-a-list-item
