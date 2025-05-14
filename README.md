@@ -15,7 +15,7 @@ A collection of reinforcement learning and intelligent agents projects showcasin
 
 Clone this repo:
 ```bash
-git clone https://github.com/yourusername/Intelligent-Agents-CS747.git
+git clone https://github.com/aaronjohnsabu1999/intelligent-agents.git
 cd Intelligent-Agents-CS747
 ```
 
