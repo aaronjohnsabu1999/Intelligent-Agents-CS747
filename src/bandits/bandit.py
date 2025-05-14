@@ -10,34 +10,31 @@ warnings.filterwarnings("ignore", category = RuntimeWarning)
 algos = ['epsilon-greedy', 'ucb', 'kl-ucb', 'thompson-sampling', 'thompson-sampling-with-hint']
 
 def init():
-    # if not len(sys.argv) == 6:
-        # print("Incorrect number of inputs")
-        # return (), 1
-
     parser = argparse.ArgumentParser()
-    parser.add_argument("--instance")
-    parser.add_argument("--algorithm")
-    parser.add_argument("--randomSeed")
-    parser.add_argument("--epsilon")
-    parser.add_argument("--horizon")
+    parser.add_argument("--instance", default="instances/i-1.txt", help="Path to instance file")
+    parser.add_argument("--algorithm", default="ucb", choices=algos, help="Bandit algorithm to use")
+    parser.add_argument("--randomSeed", default="0", help="Random seed for reproducibility")
+    parser.add_argument("--epsilon", default="0.1", help="Epsilon value (only used for epsilon-greedy)")
+    parser.add_argument("--horizon", default="1000", help="Number of timesteps")
     args = parser.parse_args()
 
-    err  = 0
-    Inst = args.instance
     try:
         Rs = int(args.randomSeed)
         Ep = float(args.epsilon)
         Hz = int(args.horizon)
-    except:
+    except Exception as e:
         print("Conversion issues. Please check your inputs.")
+        print("Details:", e)
         return (), 1
 
     An = len(algos)
-    for i in range(len(algos)):
-        if args.algorithm == algos[i]:
+    for i, algo in enumerate(algos):
+        if args.algorithm == algo:
             An = i
             break
-    return (Inst, An, Rs, Ep, Hz), 0
+
+    return (args.instance, An, Rs, Ep, Hz), 0
+
 
 
 arg, err = init()

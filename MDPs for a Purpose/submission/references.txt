@@ -1,9 +1,0 @@
-https://python-forum.io/Thread-Controlling-trailing-zeros-with-rounding
-https://docs.python.org/3/library/copy.html
-https://www.educative.io/edpresso/how-to-check-if-a-key-exists-in-a-python-dictionary
-https://numpy.org/doc/stable/reference/arrays.dtypes.html
-https://coin-or.github.io/pulp/index.html
-https://coin-or.github.io/pulp/technical/solvers.html
-https://stackoverflow.com/questions/26642029/writing-coin-or-cbc-log-file
-https://www.geeksforgeeks.org/python-find-closest-number-to-k-in-given-list/
-https://stackoverflow.com/questions/9553638/find-the-index-of-an-item-in-a-list-of-lists
