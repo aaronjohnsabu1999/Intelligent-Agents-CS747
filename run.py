@@ -14,11 +14,14 @@ def run_mdp_generate(args):
 def run_mdp_solve(args):
     subprocess.run(["python", "src/mdp/main.py"] + args)
 
+
 def run_mdp_verify(args):
     subprocess.run(["python", "src/mdp/verify.py"] + args)
 
+
 def run_mdp_visualize(args):
     subprocess.run(["python", "src/mdp/visualize.py"] + args)
+
 
 def run_windy_gridworld(args):
     subprocess.run(["python", "src/windy_gridworld/main.py"] + args)
@@ -30,10 +33,10 @@ if __name__ == "__main__":
 
     # Bandits
     bandit_parser = subparsers.add_parser("bandits", help="Run Bandits experiments")
-    bandit_parser.add_argument("--instance", required=True)
-    bandit_parser.add_argument("--algorithm", required=True)
-    bandit_parser.add_argument("--horizon", required=True)
-    bandit_parser.add_argument("--randomSeed", default="0")
+    bandit_parser.add_argument("--instance")
+    bandit_parser.add_argument("--algorithm")
+    bandit_parser.add_argument("--rseed", default="0")
+    bandit_parser.add_argument("--epsilon")
     bandit_parser.set_defaults(func=lambda args: run_bandits(sys.argv[2:]))
 
     # Windy Gridworld
@@ -93,7 +96,6 @@ if __name__ == "__main__":
     viz_parser.add_argument("--path_file", help="Path to the path file (optional)")
     viz_parser.add_argument("--output_file", required=True, help="Output image path")
     viz_parser.set_defaults(func=lambda args: run_mdp_visualize(sys.argv[2:]))
-
 
     args = parser.parse_args()
 

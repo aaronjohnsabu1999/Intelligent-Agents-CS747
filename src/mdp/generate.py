@@ -83,6 +83,7 @@ class MDPGenerator:
         with open(path, "w") as f:
             f.write("\n".join(self.generate()) + "\n")
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate MDP files.")
     parser.add_argument(
