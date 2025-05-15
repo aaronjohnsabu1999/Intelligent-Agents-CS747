@@ -55,24 +55,20 @@ Gridworld is defined as an episodic MDP with reward shaping and stepwise converg
 
 ---
 
-## Quick Setup
+## 🔧 Running Experiments with `run.py`
 
-```bash
-git clone https://github.com/aaronjohnsabu1999/intelligent-agents.git
-cd intelligent-agents
-pip install -r requirements.txt
-```
+Use the `run.py` script to run all experiments. It acts as a unified launcher for bandits, MDP solving, verification, visualization, and Windy Gridworld tasks.
 
-## How to Run
+Enable `--verbose` to view subprocess outputs and logs in real time.
 
 ### Bandits
 ```bash
 python run.py --verbose bandits \
   --instance data/bandits/instances/i-1.txt \
-  --algorithm ucb \
+  --algorithm thompson-sampling \
   --rseed 42 \
   --epsilon 0.1 \
-  --horizon 100
+  --horizon 1000
 ```
 
 ### MDP Maze Solver
@@ -81,7 +77,8 @@ python run.py --verbose solve_mdp \
   --grid data/mdp/grids/grid10.txt \
   --algorithm pi
 ```
-To create a synthetic MDP file using the generator script:
+
+To create a synthetic MDP file:
 ```bash
 python run.py --verbose generate_mdp \
   --num_states 10 \
@@ -91,23 +88,27 @@ python run.py --verbose generate_mdp \
   --rseed 42 \
   --output_file src/mdp/tmp/generated_mdp.txt
 ```
-To verify all grids:
+
+To verify all default grids (10 through 100):
 ```bash
-python run.py --verbose verify_mdp --algorithm pi
+python run.py --verbose verify_mdp --algorithm vi
 ```
-Or to test just one grid:
+
+To verify specific grids:
 ```bash
 python run.py --verbose verify_mdp \
-  --algorithm vi \
-  --grid data/mdp/grids/grid40.txt
+  --algorithm lp \
+  --grid data/mdp/grids/grid40.txt data/mdp/grids/grid50.txt
 ```
-To visualize an unsolved maze:
+
+To visualize a grid:
 ```bash
 python run.py --verbose visualize_mdp \
   --grid_file data/mdp/grids/grid10.txt \
   --output_file plots/mdp/grid10_unsolved.png
 ```
-To visualize a maze with path overlaid:
+
+To visualize a solved grid:
 ```bash
 python run.py --verbose visualize_mdp \
   --grid_file data/mdp/grids/grid10.txt \
@@ -120,11 +121,26 @@ python run.py --verbose visualize_mdp \
 python run.py --verbose windy --episodes 170
 ```
 
+---
+
+## 📚 Command Reference (Summary)
+
+| Command          | Description                              |
+|------------------|------------------------------------------|
+| `bandits`        | Run multi-armed bandit experiments       |
+| `windy`          | Run Windy Gridworld RL agents            |
+| `generate_mdp`   | Generate synthetic MDP instance files    |
+| `solve_mdp`      | Solve a maze-based MDP using vi/pi/lp    |
+| `verify_mdp`     | Verify path optimality for maze solvers  |
+| `visualize_mdp`  | Create visual output of MDP grid/paths   |
+
+---
+
 ## References
 
-- [`./references/mdp_references.txt`](./references/mdp_references.txt) – Value Iteration, Policy Iteration, and Linear Programming.
-- [`./references/bandits_references.txt`](./references/bandits_references.txt) – Multi-Armed Bandits and Exploration Strategies.
-- [`./references/windy_gridworld_references.txt`](./references/windy_gridworld_references.txt) – Reinforcement Learning in Grid-based Environments.
+- [`./references/mdp_references.txt`](./references/mdp_references.txt)
+- [`./references/bandits_references.txt`](./references/bandits_references.txt)
+- [`./references/windy_gridworld_references.txt`](./references/windy_gridworld_references.txt)
 
 ## License
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
