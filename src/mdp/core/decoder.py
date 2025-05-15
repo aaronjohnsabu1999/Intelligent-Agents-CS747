@@ -85,21 +85,23 @@ class Decoder:
         state = self.states[state_num]
         actions = []
 
+        state_to_idx = {state: idx for idx, state in enumerate(self.states)}
+
         while state_num != self.end:
             action_num = self.policy[state_num]
             action = translated[action_num]
-            neighbors = [
-                (state[0] - 1, state[1]),
-                (state[0] + 1, state[1]),
-                (state[0], state[1] + 1),
-                (state[0], state[1] - 1),
-            ]
-            state = neighbors[action_num]
-            state_num = self.states.index(state)
             actions.append(action)
 
-        # for direction in actions[:-1]:
-        #     print(direction, end=' ')
-        # print(actions[-1])
+            neighbors = [
+                (state[0] - 1, state[1]),  # N
+                (state[0] + 1, state[1]),  # S
+                (state[0], state[1] + 1),  # E
+                (state[0], state[1] - 1),  # W
+            ]
+            state = neighbors[action_num]
+            try:
+                state_num = state_to_idx[state]
+            except KeyError:
+                raise ValueError(f"Invalid state transition to {state}")
 
         return actions

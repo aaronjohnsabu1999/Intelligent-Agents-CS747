@@ -102,10 +102,15 @@ class MDPSolver:
                         p * (r + self.discount * V_vars[s_]) for s_, r, p in trans
                     )
 
+        if "end" in self.mdp:
+            for terminal_state in self.mdp["end"]:
+                prob += V_vars[terminal_state] == 0
+
         prob.solve(pulp.PULP_CBC_CMD(msg=0))
+        if pulp.LpStatus[prob.status] != "Optimal":
+            print("⚠️ LP did not solve optimally:", pulp.LpStatus[prob.status])
         V = np.array([round(v.varValue, 6) for v in V_vars])
         pi = np.array([self._best_action(V, s) for s in range(self.num_states)])
-        V = self._evaluate_policy(pi)
         return V, pi
 
     def _policy_iteration(self):
