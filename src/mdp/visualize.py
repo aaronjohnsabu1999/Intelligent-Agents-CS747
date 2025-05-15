@@ -26,10 +26,14 @@ class MazeVisualizer:
             steps = deepcopy(f.readlines()[-1].split())
 
         for move in steps:
-            if move == 'N': x -= 1
-            elif move == 'S': x += 1
-            elif move == 'E': y += 1
-            elif move == 'W': y -= 1
+            if move == "N":
+                x -= 1
+            elif move == "S":
+                x += 1
+            elif move == "E":
+                y += 1
+            elif move == "W":
+                y -= 1
             self.grid[x][y] = 2
 
         self.grid[x][y] = 4
@@ -49,7 +53,7 @@ class MazeVisualizer:
             self._convert_solution_markers()
 
         plt.figure(figsize=(10, 5))
-        plt.imshow(self.grid, cmap=plt.cm.CMRmap, interpolation='nearest')
+        plt.imshow(self.grid, cmap=plt.cm.CMRmap, interpolation="nearest")
         plt.xticks([]), plt.yticks([])
         plt.savefig(self.output)
         print(f"✅ Maze image saved to: {self.output}")

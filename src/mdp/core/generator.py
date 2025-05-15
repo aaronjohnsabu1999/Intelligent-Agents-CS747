@@ -7,7 +7,9 @@ import numpy as np
 
 
 class MDPGenerator:
-    def __init__(self, num_states, num_actions, gamma=0.9, mdptype="continuing", rseed=0):
+    def __init__(
+        self, num_states, num_actions, gamma=0.9, mdptype="continuing", rseed=0
+    ):
         self.S = num_states
         self.A = num_actions
         self.gamma = gamma

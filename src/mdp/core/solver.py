@@ -1,9 +1,14 @@
+#!/usr/bin/env python3
+# solver.py
 import os
 import pulp
 import numpy as np
 
+
 class MDPSolver:
-    def __init__(self, mdp_input_path, algorithm, policy_output_path=None, value_output_path=None):
+    def __init__(
+        self, mdp_input_path, algorithm, policy_output_path=None, value_output_path=None
+    ):
         self.mdp_input_path = mdp_input_path
         self.algorithm = algorithm
         self.policy_output_path = policy_output_path
@@ -24,40 +29,46 @@ class MDPSolver:
         self.mdp = {}
         for tokens in lines:
             key = tokens[0]
-            if key == 'transition':
-                if 'transition' not in self.mdp:
-                    self.mdp['transition'] = [
-                        [[] for _ in range(self.mdp['numActions'])]
-                        for _ in range(self.mdp['numStates'])
+            if key == "transition":
+                if "transition" not in self.mdp:
+                    self.mdp["transition"] = [
+                        [[] for _ in range(self.mdp["numActions"])]
+                        for _ in range(self.mdp["numStates"])
                     ]
                 i, j = int(tokens[1]), int(tokens[2])
-                self.mdp['transition'][i][j].append(
+                self.mdp["transition"][i][j].append(
                     (int(tokens[3]), float(tokens[4]), float(tokens[5]))
                 )
-            elif key == 'mdptype':
-                self.mdp['type'] = tokens[1]
-            elif key == 'end':
-                self.mdp['end'] = list(map(int, tokens[1:]))
-            elif key == 'discount':
-                self.mdp['discount'] = float(tokens[1])
+            elif key == "mdptype":
+                self.mdp["type"] = tokens[1]
+            elif key == "end":
+                self.mdp["end"] = list(map(int, tokens[1:]))
+            elif key == "discount":
+                self.mdp["discount"] = float(tokens[1])
             else:
                 self.mdp[key] = int(tokens[1])
 
-        self.num_states = self.mdp['numStates']
-        self.num_actions = self.mdp['numActions']
-        self.transition = self.mdp['transition']
-        self.discount = self.mdp['discount']
+        self.num_states = self.mdp["numStates"]
+        self.num_actions = self.mdp["numActions"]
+        self.transition = self.mdp["transition"]
+        self.discount = self.mdp["discount"]
 
     def _compute_q(self, V, s, a):
-        return sum(p * (r + self.discount * V[s_]) for s_, r, p in self.transition[s][a])
+        return sum(
+            p * (r + self.discount * V[s_]) for s_, r, p in self.transition[s][a]
+        )
 
     def _best_action(self, V, s):
-        return int(np.argmax([self._compute_q(V, s, a) for a in range(self.num_actions)]))
+        return int(
+            np.argmax([self._compute_q(V, s, a) for a in range(self.num_actions)])
+        )
 
     def _evaluate_policy(self, pi):
         V = np.zeros(self.num_states)
         while True:
-            new_V = np.array([self._compute_q(V, s, pi[s]) for s in range(self.num_states)])
+            new_V = np.array(
+                [self._compute_q(V, s, pi[s]) for s in range(self.num_states)]
+            )
             if np.linalg.norm(new_V - V) < self.tolerance:
                 break
             V = new_V
@@ -66,10 +77,12 @@ class MDPSolver:
     def _value_iteration(self):
         V = np.zeros(self.num_states)
         while True:
-            new_V = np.array([
-                max(self._compute_q(V, s, a) for a in range(self.num_actions))
-                for s in range(self.num_states)
-            ])
+            new_V = np.array(
+                [
+                    max(self._compute_q(V, s, a) for a in range(self.num_actions))
+                    for s in range(self.num_states)
+                ]
+            )
             if np.linalg.norm(new_V - V) < self.tolerance:
                 break
             V = new_V
