@@ -67,18 +67,23 @@ pip install -r requirements.txt
 
 ### Bandits
 ```bash
-python run.py bandits --instance instances/i-1.txt --algorithm ucb --horizon 1000 --epsilon 0.1
+python run.py --verbose bandits \
+  --instance data/bandits/instances/i-1.txt \
+  --algorithm ucb \
+  --rseed 42 \
+  --epsilon 0.1 \
+  --horizon 100
 ```
 
 ### MDP Maze Solver
 ```bash
-python run.py solve_mdp \
+python run.py --verbose solve_mdp \
   --grid data/mdp/grids/grid10.txt \
   --algorithm pi
 ```
 To create a synthetic MDP file using the generator script:
 ```bash
-python run.py generate_mdp \
+python run.py --verbose generate_mdp \
   --num_states 10 \
   --num_actions 5 \
   --gamma 0.95 \
@@ -88,21 +93,23 @@ python run.py generate_mdp \
 ```
 To verify all grids:
 ```bash
-python run.py verify_mdp --algorithm pi
+python run.py --verbose verify_mdp --algorithm pi
 ```
 Or to test just one grid:
 ```bash
-python run.py verify_mdp --algorithm vi --grid data/maze/grid40.txt
+python run.py --verbose verify_mdp \
+  --algorithm vi \
+  --grid data/mdp/grids/grid40.txt
 ```
 To visualize an unsolved maze:
 ```bash
-python run.py visualize_mdp \
+python run.py --verbose visualize_mdp \
   --grid_file data/mdp/grids/grid10.txt \
   --output_file plots/mdp/grid10_unsolved.png
 ```
 To visualize a maze with path overlaid:
 ```bash
-python run.py visualize_mdp \
+python run.py --verbose visualize_mdp \
   --grid_file data/mdp/grids/grid10.txt \
   --path_file data/mdp/paths/path10.txt \
   --output_file plots/mdp/grid10_solved.png
@@ -110,7 +117,7 @@ python run.py visualize_mdp \
 
 ### Windy Gridworld
 ```bash
-python run.py windy --episodes 170
+python run.py --verbose windy --episodes 170
 ```
 
 ## References
