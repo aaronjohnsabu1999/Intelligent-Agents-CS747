@@ -16,8 +16,6 @@ Implements and compares classical multi-armed bandit algorithms: **ε-greedy**, 
 
 Includes regret plots over multiple seeds and horizons, as well as parameter studies.
 
----
-
 ### MDP Maze Solver (`src/mdp`)
 
 Solves mazes by modeling them as Markov Decision Processes using:
@@ -52,8 +50,6 @@ Adopts the Sutton & Barto Windy Gridworld challenge with multiple RL approaches:
 - Paths from all agents are visualized for both deterministic and windy environments.
 
 Gridworld is defined as an episodic MDP with reward shaping and stepwise convergence plotting.
-
----
 
 ## 🔧 Running Experiments with `run.py`
 
@@ -121,9 +117,7 @@ python run.py --verbose visualize_mdp \
 python run.py --verbose windy --episodes 170
 ```
 
----
-
-## 📚 Command Reference (Summary)
+## Command Reference (Summary)
 
 | Command          | Description                              |
 |------------------|------------------------------------------|
@@ -133,8 +127,6 @@ python run.py --verbose windy --episodes 170
 | `solve_mdp`      | Solve a maze-based MDP using vi/pi/lp    |
 | `verify_mdp`     | Verify path optimality for maze solvers  |
 | `visualize_mdp`  | Create visual output of MDP grid/paths   |
-
----
 
 ## References
 
