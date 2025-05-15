@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+# visualize.py
+import argparse
 import numpy as np
 import matplotlib.pyplot as plt
 from copy import deepcopy
@@ -57,3 +60,29 @@ class MazeVisualizer:
         plt.xticks([]), plt.yticks([])
         plt.savefig(self.output)
         print(f"✅ Maze image saved to: {self.output}")
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Visualize MDP solutions.")
+    parser.add_argument("--grid_file", type=str, default="data/mdp/grids/grid10.txt", help="Path to the grid file")
+    parser.add_argument("--path_file", type=str, default=None, help="Path to the path file")
+    parser.add_argument("--output_file", type=str, default="plots/mdp/grid10_unsolved.png", help="Path to the output file")
+    args = parser.parse_args()
+
+    if args.path_file:
+        print(f"🔄 Applying path from: {args.path_file}"
+              f" to grid: {args.grid_file}")
+        if "unsolved" in args.output_file:
+            output_file = args.output_file.replace("unsolved", "solved")
+            print(f"🔄 Saving solved grid to: {output_file}")
+    else:
+        print(f"🔄 Converting solution markers in grid: {args.grid_file}")
+        if "solved" in args.output_file and "unsolved" not in args.output_file:
+            output_file = args.output_file.replace("solved", "unsolved")
+            print(f"🔄 Saving unsolved grid to: {output_file}")
+
+    visualizer = MazeVisualizer(
+        grid_path=args.grid_file,
+        path_path=args.path_file,
+        output=args.output_file
+    )
+    visualizer.render()

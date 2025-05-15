@@ -97,7 +97,7 @@ class MazeValidator:
 
     def verify_output(self, path, grid_file):
         """Verify that the path is optimal by comparing with solution file"""
-        sol_file = grid_file.replace("grid", "solution")
+        sol_file = grid_file.replace("grid", "path")
         if not os.path.exists(sol_file):
             print("⚠️ No solution file found to compare.")
             return
@@ -136,7 +136,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--grid",
         nargs="+",
-        default=[f"data/maze/grid{i}.txt" for i in range(10, 110, 10)],
+        default=[f"data/mdp/grids/grid{i}.txt" for i in range(10, 110, 10)],
         help="List of maze grid files to validate",
     )
     parser.add_argument(

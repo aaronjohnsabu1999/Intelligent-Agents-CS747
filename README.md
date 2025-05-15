@@ -1,88 +1,123 @@
 # Intelligent Agents
 
-A collection of reinforcement learning and intelligent agents projects showcasing implementations of key algorithms and their comparative analysis. This repository is structured for clarity, reproducibility, and ease of demonstration. These projects were developed as part of the *CS747: Foundations of Intelligent and Learning Agents* course at IIT Bombay.
+A collection of reinforcement learning and intelligent agents projects showcasing implementations of key algorithms and their comparative analysis. These projects were developed as part of the *CS747: Foundations of Intelligent and Learning Agents* course at IIT Bombay.
 
-## Projects Included:
+## Projects Included
 
-- **Bandits** ([src/bandits](src/bandits)): Implementation and comparison of classic multi-armed bandit algorithms: ε-greedy, UCB, KL-UCB, and Thompson Sampling. Includes an extension based on "Thompson sampling with a hint" using a permutation of true means. See the [report](src/bandits/report.pdf) for algorithmic insights and evaluation results.
+### Bandits (`src/bandits`)
 
-- **MDP Maze Solver** ([src/mdp](src/mdp)): Solves mazes by modeling them as Markov Decision Processes using Value Iteration, Linear Programming, and Howard's Policy Iteration. Includes custom maze encoding/decoding, verification scripts, and visualizations. Refer to the [report](src/mdp/report.pdf) for implementation details and outcomes.
+Implements and compares classical multi-armed bandit algorithms: **ε-greedy**, **UCB**, **KL-UCB**, and **Thompson Sampling**, along with a custom variant: **Thompson Sampling with a hint**. Each algorithm minimizes cumulative regret across different horizons and random seeds.
 
-- **Windy Gridworld** ([src/windy_gridworld](src/windy_gridworld)): Uses RL algorithms like Sarsa (4-directional and King’s moves), Q-Learning, and Expected Sarsa to solve the Windy Gridworld problem under various wind conditions. Includes visualizations of policy paths and algorithm comparison plots. See [report](src/windy_gridworld/report.pdf) for findings.
+**Key Findings:**
+- Thompson Sampling generally outperforms others in regret minimization.
+- KL-UCB improves over UCB using a tighter confidence bound via binary search.
+- ε-Greedy performs best at `ε ≈ 0.02` — striking a balance between exploration and exploitation.
+- The Thompson Sampling "hinted" version leverages knowledge of true means, improving early performance through a custom Beta-distribution-based selector.
+
+Includes regret plots over multiple seeds and horizons, as well as parameter studies.
+
+---
+
+### MDP Maze Solver (`src/mdp`)
+
+Solves mazes by modeling them as Markov Decision Processes using:
+- **Value Iteration**
+- **Linear Programming** (via PuLP)
+- **Howard’s Policy Iteration**
+
+**Pipeline:**
+1. `encoder.py` transforms grid mazes into MDPs.
+2. `solver.py` computes optimal policy.
+3. `decoder.py` reconstructs the shortest path using the policy.
+
+**Insights:**
+- LP is consistently fastest for large mazes.
+- Howard's Policy Iteration performs well on small problems but becomes costly as maze complexity grows.
+- Visual comparisons confirm that solved mazes follow intuitive paths with minimal steps.
+
+Benchmarks for runtime across methods and visualizations for grid navigation are included.
+
+### Windy Gridworld (`src/windy_gridworld`)
+
+Adopts the Sutton & Barto Windy Gridworld challenge with multiple RL approaches:
+- **Sarsa** (normal and King’s moves)
+- **Sarsa with stochastic wind**
+- **Q-Learning**
+- **Expected Sarsa**
+
+**Key Results:**
+- Sarsa with King’s Moves converges fastest due to shorter episodes.
+- Q-Learning and Expected Sarsa outperform standard Sarsa on stability and convergence.
+- The stochastic wind variant adds realistic randomness but slows convergence.
+- Paths from all agents are visualized for both deterministic and windy environments.
+
+Gridworld is defined as an episodic MDP with reward shaping and stepwise convergence plotting.
+
+---
 
 ## Quick Setup
 
-Clone this repo:
 ```bash
 git clone https://github.com/aaronjohnsabu1999/intelligent-agents.git
 cd intelligent-agents
-```
-
-Install dependencies:
-```bash
 pip install -r requirements.txt
 ```
 
 ## How to Run
 
 ### Bandits
-Run experiments comparing multi-armed bandit algorithms:
 ```bash
 python run.py bandits --instance instances/i-1.txt --algorithm ucb --horizon 1000 --epsilon 0.1
 ```
 
 ### MDP Maze Solver
-Solve an MDP maze using a specified algorithm:
 ```bash
-python main.py generate \
-  --S 10 \
-  --A 5 \
+python run.py solve_mdp \
+  --grid data/mdp/grids/grid10.txt \
+  --algorithm pi
+```
+To create a synthetic MDP file using the generator script:
+```bash
+python run.py generate_mdp \
+  --num_states 10 \
+  --num_actions 5 \
   --gamma 0.95 \
-  --mdptype continuing \
+  --mdptype episodic \
   --rseed 42 \
-  --mdp_output_path src/mdp/output/mdp.txt
-
-python main.py solve \
-  --mdp src/mdp/output/mdp.txt \
-  --algorithm pi \
-  --policy_output_path src/mdp/output/policy.txt \
-  --value_output_path src/mdp/output/value.txt
+  --output_file src/mdp/tmp/generated_mdp.txt
+```
+To verify all grids:
+```bash
+python run.py verify_mdp --algorithm pi
+```
+Or to test just one grid:
+```bash
+python run.py verify_mdp --algorithm vi --grid data/maze/grid40.txt
+```
+To visualize an unsolved maze:
+```bash
+python run.py visualize_mdp \
+  --grid_file data/mdp/grids/grid10.txt \
+  --output_file plots/mdp/grid10_unsolved.png
+```
+To visualize a maze with path overlaid:
+```bash
+python run.py visualize_mdp \
+  --grid_file data/mdp/grids/grid10.txt \
+  --path_file data/mdp/paths/path10.txt \
+  --output_file plots/mdp/grid10_solved.png
 ```
 
 ### Windy Gridworld
-Run reinforcement learning algorithms on Windy Gridworld:
 ```bash
 python run.py windy --episodes 170
 ```
 
-## Project Structure
-```
-intelligent-agents/
-├── run.py
-├── requirements.txt
-├── LICENSE
-├── README.md
-├── src/
-│   ├── bandits/
-│   │   ├── bandit.py
-│   │   ├── instances/
-│   │   ├── outputs/
-│   │   ├── report.pdf
-│   │   ├── references.txt
-│   │   └── *.sh (scripts)
-│   ├── mdp/
-│   │   ├── planner.py, decoder.py, encoder.py, visualize.py
-│   │   ├── data/, plots/, mdpfile/, pathfile/
-│   │   ├── report.pdf
-│   │   └── references.txt
-│   └── windy_gridworld/
-│       ├── gridworld.py
-│       ├── plots/
-│       ├── report.pdf
-│       └── references.txt
-```
+## References
 
-All relevant scripts, data, references, and visualizations are self-contained within each module.
+- [`./references/mdp_references.txt`](./references/mdp_references.txt) – Value Iteration, Policy Iteration, and Linear Programming.
+- [`./references/bandits_references.txt`](./references/bandits_references.txt) – Multi-Armed Bandits and Exploration Strategies.
+- [`./references/windy_gridworld_references.txt`](./references/windy_gridworld_references.txt) – Reinforcement Learning in Grid-based Environments.
 
 ## License
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.

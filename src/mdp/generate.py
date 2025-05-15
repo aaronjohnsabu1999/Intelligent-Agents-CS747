@@ -82,3 +82,41 @@ class MDPGenerator:
         os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, "w") as f:
             f.write("\n".join(self.generate()) + "\n")
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Generate MDP files.")
+    parser.add_argument(
+        "--num_states", type=int, default=10, help="Number of states in the MDP"
+    )
+    parser.add_argument(
+        "--num_actions", type=int, default=4, help="Number of actions in the MDP"
+    )
+    parser.add_argument(
+        "--gamma", type=float, default=0.9, help="Discount factor for the MDP"
+    )
+    parser.add_argument(
+        "--mdptype",
+        choices=["continuing", "episodic"],
+        default="continuing",
+        help="Type of MDP to generate",
+    )
+    parser.add_argument(
+        "--rseed", type=int, default=0, help="Random seed for reproducibility"
+    )
+    parser.add_argument(
+        "--output_file",
+        type=str,
+        default="mdp.txt",
+        help="Output file path for the generated MDP",
+    )
+
+    args = parser.parse_args()
+
+    generator = MDPGenerator(
+        num_states=args.num_states,
+        num_actions=args.num_actions,
+        gamma=args.gamma,
+        mdptype=args.mdptype,
+        rseed=args.rseed,
+    )
+    generator.save_to_file(args.output_file)
