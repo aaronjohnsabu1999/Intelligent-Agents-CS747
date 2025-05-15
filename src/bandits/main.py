@@ -18,13 +18,13 @@ logger = logging.getLogger(__name__)
 class ArmStats:
     pulls: int = 0
     rewards: List[int] = field(default_factory=list)
-    success: int = 0
-    failure: int = 0
-    estimated_prob: float = 0.0
+    successes: int = 0
+    failures: int = 0
+    estimated_probability: float = 0.0
 
 
 class BanditExperiment:
-    algos = [
+    ALGORITHMS = [
         "epsilon-greedy",
         "ucb",
         "kl-ucb",
@@ -32,132 +32,202 @@ class BanditExperiment:
         "thompson-sampling-with-hint",
     ]
 
-    def __init__(self, instance: str, algorithm: str, rseed: int, epsilon: float, horizon: int):
-        self.instance = instance
+    def __init__(
+        self,
+        instance_path: str,
+        algorithm: str,
+        seed: int,
+        epsilon: float,
+        horizon: int,
+    ):
+        self.instance_path = instance_path
         self.algorithm = algorithm
-        self.rseed = rseed
+        self.seed = seed
         self.epsilon = epsilon
         self.horizon = horizon
-        self.arms: List[float] = self.load_instance()
+        self.arm_probabilities: List[float] = self._load_instance()
 
-    def load_instance(self) -> List[float]:
-        with open(self.instance) as f:
+    def _load_instance(self) -> List[float]:
+        with open(self.instance_path) as f:
             return [float(line.strip()) for line in f.readlines()]
 
     def run(self) -> float:
-        random.seed(self.rseed)
+        random.seed(self.seed)
 
         if self.algorithm == "epsilon-greedy":
-            picks = self.epsilon_greedy()
+            arm_stats = self._epsilon_greedy_strategy()
         elif self.algorithm == "ucb":
-            picks = self.ucb(kl=False)
+            arm_stats = self._ucb_strategy(use_kl=False)
         elif self.algorithm == "kl-ucb":
-            picks = self.ucb(kl=True)
+            arm_stats = self._ucb_strategy(use_kl=True)
         elif self.algorithm == "thompson-sampling":
-            picks = self.thompson()
+            arm_stats = self._thompson_sampling_strategy()
         elif self.algorithm == "thompson-sampling-with-hint":
-            picks = self.thompson_hint()
+            arm_stats = self._thompson_sampling_with_hint_strategy()
         else:
-            raise ValueError("Unknown algorithm")
+            raise ValueError(f"Unknown algorithm: {self.algorithm}")
 
-        regret = self.calculate_regret(picks)
-        logger.info(self.format_result(regret))
+        regret = self._calculate_regret(arm_stats)
+        logger.info(self._format_result(regret))
         return regret
 
-    def format_result(self, regret: float) -> str:
-        return f"{self.instance}, {self.algorithm}, {self.rseed}, {self.epsilon}, {self.horizon}, {regret}"
+    def _format_result(self, regret: float) -> str:
+        return f"{self.instance_path}, {self.algorithm}, {self.seed}, {self.epsilon}, {self.horizon}, {regret}"
 
-    def epsilon_greedy(self) -> Dict[float, ArmStats]:
-        picks = {arm: ArmStats() for arm in self.arms}
+    def _epsilon_greedy_strategy(self) -> Dict[float, ArmStats]:
+        arm_stats = {arm: ArmStats() for arm in self.arm_probabilities}
         for _ in range(self.horizon):
-            pick = (
-                random.choice(range(len(self.arms)))
-                if random.random_sample() < self.epsilon
-                else np.argmax([np.mean(p.rewards) if p.rewards else 0 for p in picks.values()])
+            if random.random_sample() < self.epsilon:
+                chosen_arm_index = random.choice(range(len(self.arm_probabilities)))
+            else:
+                mean_rewards = [
+                    np.mean(stats.rewards) if stats.rewards else 0
+                    for stats in arm_stats.values()
+                ]
+                chosen_arm_index = np.argmax(mean_rewards)
+
+            chosen_arm_probability = self.arm_probabilities[chosen_arm_index]
+            reward = 1 if random.random_sample() < chosen_arm_probability else 0
+            stats = arm_stats[chosen_arm_probability]
+            stats.pulls += 1
+            stats.rewards.append(reward)
+        return arm_stats
+
+    def _ucb_strategy(self, use_kl: bool) -> Dict[float, ArmStats]:
+        def kullback_leibler_divergence(p: float, q: float) -> float:
+            return (
+                p * math.log(p / q) + (1 - p) * math.log((1 - p) / (1 - q))
+                if 0 < p < 1 and 0 < q < 1
+                else float("inf")
             )
-            arm = self.arms[pick]
-            reward = int(random.random_sample() < arm)
-            stats = picks[arm]
+
+        def calculate_ucb(mean_reward: float, pulls: int, time_step: int) -> float:
+            if pulls == 0:
+                return float("inf")
+            if not use_kl:
+                return mean_reward + math.sqrt(2 * math.log(time_step) / pulls)
+            low, high, tolerance = mean_reward, 1.0, 1e-4
+            bound = (
+                (math.log(time_step) + 3 * math.log(math.log(time_step))) / pulls
+                if time_step > 1
+                else 0
+            )
+            while high - low > tolerance:
+                mid = (low + high) / 2
+                if kullback_leibler_divergence(mean_reward, mid) <= bound:
+                    low = mid
+                else:
+                    high = mid
+            return (low + high) / 2
+
+        arm_stats = {
+            arm: ArmStats(pulls=1, rewards=[1 if random.random_sample() < arm else 0])
+            for arm in self.arm_probabilities
+        }
+        for t in range(len(arm_stats), self.horizon):
+            for stats in arm_stats.values():
+                stats.estimated_probability = np.mean(stats.rewards)
+            ucb_values = [
+                calculate_ucb(stats.estimated_probability, stats.pulls, t + 1)
+                for stats in arm_stats.values()
+            ]
+            chosen_arm_index = np.argmax(ucb_values)
+            chosen_arm_probability = self.arm_probabilities[chosen_arm_index]
+            reward = 1 if random.random_sample() < chosen_arm_probability else 0
+            stats = arm_stats[chosen_arm_probability]
             stats.pulls += 1
             stats.rewards.append(reward)
-        return picks
+        return arm_stats
 
-    def ucb(self, kl: bool) -> Dict[float, ArmStats]:
-        def log(x): return math.log(x) if x > 0 else 0
-
-        def ucb_calc(p: float, n: int, t: int) -> float:
-            if not kl:
-                return p + math.sqrt(2 * log(t) / n)
-            start, end, c, tol = p, 1.0, 3, 1e-4
-            final = (log(t) + c * log(log(t))) / n
-            while abs(start - end) > tol:
-                mid = (start + end) / 2
-                kl_val = p * log(p / mid) + (1 - p) * log((1 - p) / (1 - mid))
-                start, end = (mid, end) if kl_val <= final else (start, mid)
-            return (start + end) / 2
-
-        picks = {arm: ArmStats(pulls=1, rewards=[int(random.random_sample() < arm)]) for arm in self.arms}
-        for t in range(len(picks), self.horizon):
-            for stats in picks.values():
-                stats.estimated_prob = np.mean(stats.rewards)
-            scores = [ucb_calc(p.estimated_prob, p.pulls, t) for p in picks.values()]
-            arm = self.arms[np.argmax(scores)]
-            reward = int(random.random_sample() < arm)
-            stats = picks[arm]
-            stats.pulls += 1
-            stats.rewards.append(reward)
-        return picks
-
-    def thompson(self) -> Dict[float, ArmStats]:
-        picks = {arm: ArmStats() for arm in self.arms}
+    def _thompson_sampling_strategy(self) -> Dict[float, ArmStats]:
+        arm_stats = {arm: ArmStats() for arm in self.arm_probabilities}
         for _ in range(self.horizon):
-            betas = [random.beta(p.success + 1, p.failure + 1) for p in picks.values()]
-            arm = self.arms[np.argmax(betas)]
-            reward = int(random.random_sample() < arm)
-            stats = picks[arm]
+            beta_samples = [
+                random.beta(stats.successes + 1, stats.failures + 1)
+                for stats in arm_stats.values()
+            ]
+            chosen_arm_index = np.argmax(beta_samples)
+            chosen_arm_probability = self.arm_probabilities[chosen_arm_index]
+            reward = 1 if random.random_sample() < chosen_arm_probability else 0
+            stats = arm_stats[chosen_arm_probability]
             stats.pulls += 1
             stats.rewards.append(reward)
-            stats.success += reward
-            stats.failure += 1 - reward
-            stats.estimated_prob = stats.success / (stats.success + stats.failure)
-        return picks
+            stats.successes += reward
+            stats.failures += 1 - reward
+            stats.estimated_probability = stats.successes / (
+                stats.successes + stats.failures
+            )
+        return arm_stats
 
-    def thompson_hint(self) -> Dict[float, ArmStats]:
-        picks = {arm: ArmStats() for arm in self.arms}
-        hints = np.sort(self.arms)
+    def _thompson_sampling_with_hint_strategy(self) -> Dict[float, ArmStats]:
+        arm_stats = {arm: ArmStats() for arm in self.arm_probabilities}
+        sorted_arm_probabilities = np.sort(self.arm_probabilities)
         for t in range(self.horizon):
             if t < 0.2 * self.horizon or random.random_sample() < 0.3:
-                betas = [random.beta(p.success + 1, p.failure + 1) for p in picks.values()]
-                arm = self.arms[np.argmax(betas)]
+                beta_samples = [
+                    random.beta(stats.successes + 1, stats.failures + 1)
+                    for stats in arm_stats.values()
+                ]
+                chosen_arm_index = np.argmax(beta_samples)
             else:
-                true_max = max(hints)
-                phi = 1e4
-                distr = random.beta(true_max * phi, (1 - true_max) * phi)
-                emps = [abs(p.estimated_prob - distr) for p in picks.values()]
-                arm = self.arms[np.argmin(emps)]
-            reward = int(random.random_sample() < arm)
-            stats = picks[arm]
+                true_max_prob = max(sorted_arm_probabilities)
+                concentration = 1e4
+                hint_distribution = random.beta(
+                    true_max_prob * concentration, (1 - true_max_prob) * concentration
+                )
+                estimation_errors = [
+                    abs(stats.estimated_probability - hint_distribution)
+                    for stats in arm_stats.values()
+                ]
+                chosen_arm_index = np.argmin(estimation_errors)
+
+            chosen_arm_probability = self.arm_probabilities[chosen_arm_index]
+            reward = 1 if random.random_sample() < chosen_arm_probability else 0
+            stats = arm_stats[chosen_arm_probability]
             stats.pulls += 1
             stats.rewards.append(reward)
-            stats.success += reward
-            stats.failure += 1 - reward
-            stats.estimated_prob = stats.success / (stats.success + stats.failure)
-        return picks
+            stats.successes += reward
+            stats.failures += 1 - reward
+            stats.estimated_probability = stats.successes / (
+                stats.successes + stats.failures
+            )
+        return arm_stats
 
-    def calculate_regret(self, picks: Dict[float, ArmStats]) -> float:
-        opt_arm = max(self.arms)
-        total = self.horizon * opt_arm
-        reward = sum(sum(p.rewards) for p in picks.values())
-        return round(total - reward, 4)
+    def _calculate_regret(self, arm_stats: Dict[float, ArmStats]) -> float:
+        optimal_arm_probability = max(self.arm_probabilities)
+        total_optimal_reward = self.horizon * optimal_arm_probability
+        total_actual_reward = sum(sum(stats.rewards) for stats in arm_stats.values())
+        return round(total_optimal_reward - total_actual_reward, 4)
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--instance", default="data/bandits/instances/i-1.txt")
-    parser.add_argument("--algorithm", default="ucb", choices=BanditExperiment.algos)
-    parser.add_argument("--rseed", type=int, default=0)
-    parser.add_argument("--epsilon", type=float, default=0.1)
-    parser.add_argument("--horizon", type=int, default=1000)
+    parser = argparse.ArgumentParser(description="Run a multi-armed bandit experiment.")
+    parser.add_argument(
+        "--instance",
+        default="data/bandits/instances/i-1.txt",
+        help="Path to the bandit instance file.",
+    )
+    parser.add_argument(
+        "--algorithm",
+        default="ucb",
+        choices=BanditExperiment.ALGORITHMS,
+        help="The bandit algorithm to use.",
+    )
+    parser.add_argument(
+        "--rseed", type=int, default=0, help="Random seed for reproducibility."
+    )
+    parser.add_argument(
+        "--epsilon",
+        type=float,
+        default=0.1,
+        help="Epsilon parameter for epsilon-greedy.",
+    )
+    parser.add_argument(
+        "--horizon",
+        type=int,
+        default=1000,
+        help="Number of time steps in the experiment.",
+    )
     args = parser.parse_args()
 
     BanditExperiment(
