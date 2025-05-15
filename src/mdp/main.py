@@ -113,7 +113,7 @@ class MazeVerifyOutput:
 
 
 if __name__ == "__main__":
-    parser.add_argument("--algorithm",type=str,default="hpi")
+    parser.add_argument("--algorithm",type=str,default="pi")
     args = parser.parse_args()
     start = time.time()
     algo = MazeVerifyOutput(args.algorithm)
