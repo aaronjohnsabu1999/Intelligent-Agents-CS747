@@ -204,12 +204,12 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run a multi-armed bandit experiment.")
     parser.add_argument(
         "--instance",
-        default="data/bandits/instances/i-1.txt",
+        required=True,
         help="Path to the bandit instance file.",
     )
     parser.add_argument(
         "--algorithm",
-        default="ucb",
+        required=True,
         choices=BanditExperiment.ALGORITHMS,
         help="The bandit algorithm to use.",
     )
@@ -219,13 +219,13 @@ if __name__ == "__main__":
     parser.add_argument(
         "--epsilon",
         type=float,
-        default=0.1,
+        required=True,
         help="Epsilon parameter for epsilon-greedy.",
     )
     parser.add_argument(
         "--horizon",
         type=int,
-        default=1000,
+        required=True,
         help="Number of time steps in the experiment.",
     )
     args = parser.parse_args()
