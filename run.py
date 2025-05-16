@@ -26,6 +26,7 @@ class WindyGridworldConfig:
     discount: float = 1.0
     learning_rate: float = 0.4
 
+
 @dataclass
 class MDPGenerateConfig:
     output_file: str

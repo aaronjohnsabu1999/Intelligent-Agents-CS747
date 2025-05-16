@@ -22,7 +22,9 @@ class WindyGridworld:
             [-1, 0],
             [0, 0],
         ]
-        self.grid = [[dcopy(self.wind[x]) for x in range(self.width)] for _ in range(self.height)]
+        self.grid = [
+            [dcopy(self.wind[x]) for x in range(self.width)] for _ in range(self.height)
+        ]
 
     def apply_wind(self, state):
         wind = dcopy(self.grid[state[0]][state[1]])
@@ -40,7 +42,8 @@ class RLAgent:
         self.discount = discount
         self.epsilon = epsilon
         self.q_table = [
-            [[-1e10 for _ in range(self.num_actions)] for _ in range(10)] for _ in range(7)
+            [[-1e10 for _ in range(self.num_actions)] for _ in range(10)]
+            for _ in range(7)
         ]
         self.initialize_q()
 
@@ -68,7 +71,9 @@ class RLAgent:
         policy = self.epsilon_greedy_policy(state)
         return random.choices(range(self.num_actions), weights=policy)[0], policy
 
-    def update_q(self, state, action, reward, next_state, next_action=None, next_policy=None):
+    def update_q(
+        self, state, action, reward, next_state, next_action=None, next_policy=None
+    ):
         old_q = self.q_table[state[0]][state[1]][action]
         next_q_values = self.q_table[next_state[0]][next_state[1]]
 
@@ -83,7 +88,9 @@ class RLAgent:
         else:
             raise ValueError(f"Unknown function: {self.function}")
 
-        self.q_table[state[0]][state[1]][action] = (1 - self.lr) * old_q + self.lr * target
+        self.q_table[state[0]][state[1]][action] = (
+            1 - self.lr
+        ) * old_q + self.lr * target
 
 
 class RLRunner:
@@ -119,9 +126,14 @@ class RLRunner:
                 next_action, next_policy = self.agent.select_action(next_state)
 
                 self.agent.update_q(
-                    state, action, reward, next_state,
+                    state,
+                    action,
+                    reward,
+                    next_state,
                     next_action=next_action if self.agent.function == "Sarsa" else None,
-                    next_policy=next_policy if self.agent.function == "Expected Sarsa" else None,
+                    next_policy=(
+                        next_policy if self.agent.function == "Expected Sarsa" else None
+                    ),
                 )
 
                 state = next_state
@@ -160,26 +172,39 @@ if __name__ == "__main__":
         ("Sarsa", normMoves, False, "Non-stochastic Sarsa with 4 moves"),
         ("Sarsa", kingMoves, False, "Non-stochastic Sarsa with 8 moves"),
         ("Sarsa", kingMoves, True, "Stochastic Sarsa with 8 moves"),
-        ("Expected Sarsa", normMoves, False, "Non-stochastic Expected Sarsa with 4 moves"),
+        (
+            "Expected Sarsa",
+            normMoves,
+            False,
+            "Non-stochastic Expected Sarsa with 4 moves",
+        ),
         ("Q-Learning", normMoves, False, "Non-stochastic Q-Learning with 4 moves"),
     ]
     start, end = (3, 0), (3, 7)
-    
+
     parser.add_argument(
-        "--episodes", type=int, default=170,
-        help="Number of episodes to train (default: 170)"
+        "--episodes",
+        type=int,
+        default=170,
+        help="Number of episodes to train (default: 170)",
     )
     parser.add_argument(
-        "--epsilon", type=float, default=0.1,
-        help="Exploration rate (epsilon) (default: 0.1)"
+        "--epsilon",
+        type=float,
+        default=0.1,
+        help="Exploration rate (epsilon) (default: 0.1)",
     )
     parser.add_argument(
-        "--discount", type=float, default=1.0,
-        help="Discount factor (gamma) (default: 1.0)"
+        "--discount",
+        type=float,
+        default=1.0,
+        help="Discount factor (gamma) (default: 1.0)",
     )
     parser.add_argument(
-        "--learning-rate", type=float, default=0.4,
-        help="Learning rate (alpha) (default: 0.4)"
+        "--learning-rate",
+        type=float,
+        default=0.4,
+        help="Learning rate (alpha) (default: 0.4)",
     )
 
     args = parser.parse_args()
@@ -188,7 +213,6 @@ if __name__ == "__main__":
     epsilon = args.epsilon
     discount = args.discount
     learning_rate = args.learning_rate
-
 
     for function, moves, stochastic, label in options:
         q_avgs, r_avgs, t_avgs = None, None, None
