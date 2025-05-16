@@ -22,7 +22,9 @@ class BanditConfig:
 @dataclass
 class WindyGridworldConfig:
     episodes: int = 170
-
+    epsilon: float = 0.1
+    discount: float = 1.0
+    learning_rate: float = 0.4
 
 @dataclass
 class MDPGenerateConfig:
@@ -103,6 +105,9 @@ class WindyGridworldRunner(SubcommandRunner):
             "python",
             "src/windy_gridworld/main.py",
             f"--episodes={config.episodes}",
+            f"--epsilon={config.epsilon}",
+            f"--discount={config.discount}",
+            f"--learning-rate={config.learning_rate}",
         ]
         self._execute(command)
 
@@ -242,6 +247,9 @@ if __name__ == "__main__":
         "windy", help="Run Windy Gridworld experiments"
     )
     gridworld_parser.add_argument("--episodes", type=int, default=170)
+    gridworld_parser.add_argument("--epsilon", type=float, default=0.1)
+    gridworld_parser.add_argument("--discount", type=float, default=1.0)
+    gridworld_parser.add_argument("--learning-rate", type=float, default=0.4)
     gridworld_parser.set_defaults(runner=WindyGridworldRunner)
 
     # Generate MDP

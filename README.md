@@ -114,7 +114,11 @@ python run.py --verbose visualize_mdp \
 
 ### Windy Gridworld
 ```bash
-python run.py --verbose windy --episodes 170
+python run.py --verbose windy \
+  --episodes 200 \
+  --epsilon 0.15 \
+  --discount 0.99 \
+  --learning-rate 0.5
 ```
 
 ## Command Reference (Summary)
